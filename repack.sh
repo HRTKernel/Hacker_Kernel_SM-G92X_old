@@ -38,9 +38,9 @@ cp dt.img boot/dt.img
 #./mkboot boot.img boot
 
 echo "Making zip ..."
-cp $BOOTIMG $FLASH_ZIP_FILES/boot.img
+cp $BOOTIMG $FLASH_ZIP_FILES/kernel/boot.img
 cd $FLASH_ZIP_FILES
-zip -r $KERNEL_NAME.zip META-INF system boot.img data
+zip -r $KERNEL_NAME.zip META-INF system kernel data
 mv $KERNEL_NAME.zip $OUTPUT_DIR
 
 echo "Making cleaning ..."

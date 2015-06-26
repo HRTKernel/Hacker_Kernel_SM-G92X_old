@@ -43,8 +43,12 @@ set_perm_recursive(0, 2000, 0777, 0777, "/system/etc/init.d");
 ui_print("Installing Synapse");
 package_extract_dir("data", "/data");
 ui_print("Flashing kernel");
-package_extract_file("boot.img", "/dev/block/platform/15570000.ufs/by-name/BOOT");
-
+package_extract_dir("kernel", "/tmp");
+set_perm(0, 0, 0755, "/tmp/intelliflash.sh");
+ui_print("Starting Intelliflash...");
+run_program("/tmp/intelliflash.sh");
+delete_recursive("/tmp");
+run_program("/sbin/rm", "-rf", "/system/app/SecurityLogAgent");
 ui_print("Unmounting /system........");
 run_program("/sbin/busybox", "umount", "/system");
 run_program("/sbin/busybox", "umount", "/data");
