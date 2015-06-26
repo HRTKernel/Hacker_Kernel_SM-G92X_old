@@ -865,6 +865,11 @@ on property:sys.powerctl=*
 on property:sys.sysctl.extra_free_kbytes=*
     write /proc/sys/vm/extra_free_kbytes ${sys.sysctl.extra_free_kbytes}
 
+# Activate Background Compaction
+on property:sys.sysctl.compact_memory=1
+    write /proc/sys/vm/compact_memory 1
+    setprop sys.sysctl.compact_memory=0
+
 # "tcp_default_init_rwnd" Is too long!
 on property:sys.sysctl.tcp_def_init_rwnd=*
     write /proc/sys/net/ipv4/tcp_default_init_rwnd ${sys.sysctl.tcp_def_init_rwnd}
@@ -1272,6 +1277,13 @@ on property:sys.boot_completed=1
     chown system system /sys/class/net/wlan0/queues/rx-0/rps_cpus
     chmod 0664 /sys/fs/selinux/enforce
     write /sys/fs/selinux/enforce 0
+    #tweak vm
+    write /proc/sys/vm/vfs_cache_pressure 25
+    write /proc/sys/vm/dirty_exipre_centisecs 1000
+    write /proc/sys/vm/dirty_writeback_centisecs 500
+    write /proc/sys/vm/min_free_kbytes 32768
+    write /proc/sys/vm/swappiness 160
+    write /sys/module/zswap/parameters/max_pool_percent 35
 
 # icd
 on property:init.svc.media=restarting
@@ -1319,4 +1331,11 @@ service startsu /system/bin/sh /sbin/startsu.sh
 service hackerinit /sbin/hacker.sh
     class main
     user root
+    oneshot
+
+# init.d support enabler
+service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
+    class late_start
+    user root
+    group shell
     oneshot
