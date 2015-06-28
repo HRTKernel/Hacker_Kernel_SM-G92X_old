@@ -93,26 +93,6 @@ dd if=/tmp/boot.img of=/dev/block/platform/15570000.ufs/by-name/BOOT
 #echo "ui_print $patchaudio for $D variant" >&$RUI;
 #cp -r /tmp/sys$D/* /system/
 
-
-#set DHA and other tweaks in build.prop
-sleep 1
-echo "ui_print $prop" >&$RUI;
-bp="/system/build.prop"
-if [ -f /system/build.prop.bakUK ]; then
-    rm -rf $bp
-    cp $bp.bakUK $bp
-else
-    cp $bp $bp.bakUK
-fi
-for mod in props;
-  do
-    for prop in `cat /tmp/$mod`;do
-      export newprop=$(echo ${prop} | cut -d '=' -f1)
-      sed -i "/${newprop}/d" /system/build.prop
-      echo $prop >> /system/build.prop
-    done
-done
-
 #add init.d support
 #sleep 1
 #echo "ui_print $initd" >&$RUI;
