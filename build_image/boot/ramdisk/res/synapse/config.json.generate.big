@@ -42,6 +42,16 @@ cat << CTAG
 		}
 	}},
 	{ SPane:{
+		title:"HPM Voltage Control",
+        }},
+	{ SSeekBar:{
+		title:"Atlas HPM voltage margin",
+		description:"Set the maximum voltage margin the APM undervolts down to.",
+		default:`cat /sys/kernel/debug/mailbox/atl_cl_margin`,
+		action:"generic /sys/kernel/debug/mailbox/atl_cl_margin",
+		unit:"µV", weight:6250.0, min:0, step:1, max:10
+	}},
+	{ SPane:{
 		title:"CPU voltage control",
 		description:"Decreasing voltage will lower power consumption of the CPU. Increasing it on overclocked frequencies improves stability. Too low voltage may cause instabilities and freezes."
         }},
