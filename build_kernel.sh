@@ -10,7 +10,7 @@ BUILD_JOB_NUMBER=`grep processor /proc/cpuinfo|wc -l`
 
 #Sabermod
 #Linaro
-BUILD_CROSS_COMPILE=$TOOLCHAIN_DIR/stock_aarch64/bin/aarch64-linux-android-
+BUILD_CROSS_COMPILE=$TOOLCHAIN_DIR/aarch64-UBERTC/bin/aarch64-linux-android-
 
 
 #vars
@@ -50,7 +50,7 @@ BUILD_KERNEL()
 	export ARCH=arm64
         export SUBARCH=arm64
 	export KBUILD_BUILD_USER=thehacker911
-	export KBUILD_BUILD_HOST=hrt-projekt.de
+	export KBUILD_BUILD_HOST=smartlounge.eu
         #export USE_CCACHE=1
         export USE_SEC_FIPS_MODE=true
 	export CROSS_COMPILE=$BUILD_CROSS_COMPILE
