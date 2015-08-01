@@ -420,6 +420,7 @@ static int exynos_set_voltage(unsigned int cur_index,
 		ret = regulator_set_voltage(regulator, volt, volt + VOLT_RANGE_STEP);
 		if (ret)
 			goto out;
+
 	}
 
 	if (exynos_info[cluster]->abb_table)
@@ -431,6 +432,7 @@ static int exynos_set_voltage(unsigned int cur_index,
 			goto out;
 	}
 
+	exynos_info[cluster]->cur_volt = volt;
 out:
 	return ret;
 }
@@ -931,6 +933,8 @@ static int exynos_cpufreq_pm_notifier(struct notifier_block *notifier,
 				if (regulator_set_voltage(exynos_info[cl]->regulator, volt, volt + VOLT_RANGE_STEP))
 					goto err;
 
+			exynos_info[cl]->cur_volt = volt;
+
 			if (exynos_info[cl]->set_ema)
 				exynos_info[cl]->set_ema(volt);
 #ifdef CONFIG_EXYNOS_CL_DVFS_CPU
@@ -967,6 +971,7 @@ err:
 
 static struct notifier_block exynos_cpufreq_nb = {
 	.notifier_call = exynos_cpufreq_pm_notifier,
+	.priority = -1,
 };
 
 #ifdef CONFIG_EXYNOS_THERMAL
@@ -976,7 +981,10 @@ static int exynos_cpufreq_tmu_notifier(struct notifier_block *notifier,
 	int volt, cl;
 	int *on = v;
 	int ret = NOTIFY_OK;
-	int cl_index;
+#ifdef CONFIG_EXYNOS_CL_DVFS_CPU
+	int cl_index = 0;
+#endif
+	int cold_offset = 0;
 
 	if (event != TMU_COLD)
 		return NOTIFY_OK;
@@ -989,8 +997,9 @@ static int exynos_cpufreq_tmu_notifier(struct notifier_block *notifier,
 			volt_offset = COLD_VOLT_OFFSET;
 
 		for (cl = 0; cl < CL_END; cl++) {
-			volt = get_freq_volt(cl, freqs[cl]->old, &cl_index);
+			volt = exynos_info[cl]->cur_volt;
 #ifdef CONFIG_EXYNOS_CL_DVFS_CPU
+			get_freq_volt(cl, freqs[cl]->old, &cl_index);
 			exynos7420_cl_dvfs_stop(CLUSTER_ID(cl), cl_index);
 #endif
 			volt = get_limit_voltage(volt);
@@ -1000,18 +1009,22 @@ static int exynos_cpufreq_tmu_notifier(struct notifier_block *notifier,
 				goto out;
 			}
 
+			exynos_info[cl]->cur_volt = volt;
+
 			if (exynos_info[cl]->set_ema)
 				exynos_info[cl]->set_ema(volt);
 		}
 	} else {
 		if (!volt_offset)
 			goto out;
-		else
+		else {
+			cold_offset = volt_offset;
 			volt_offset = 0;
-
+		}
 		for (cl = 0; cl < CL_END; cl++) {
-			volt = get_limit_voltage(get_freq_volt(cl, freqs[cl]->old, &cl_index));
+			volt = get_limit_voltage(exynos_info[cl]->cur_volt - cold_offset);
 #ifdef CONFIG_EXYNOS_CL_DVFS_CPU
+			get_freq_volt(cl, freqs[cl]->old, &cl_index);
 			exynos7420_cl_dvfs_stop(CLUSTER_ID(cl), cl_index);
 #endif
 			if (exynos_info[cl]->set_ema)
@@ -1022,6 +1035,9 @@ static int exynos_cpufreq_tmu_notifier(struct notifier_block *notifier,
 				ret = NOTIFY_BAD;
 				goto out;
 			}
+
+			exynos_info[cl]->cur_volt = volt;
+
 #ifdef CONFIG_EXYNOS_CL_DVFS_CPU
 			exynos7420_cl_dvfs_start(CLUSTER_ID(cl));
 #endif
@@ -1593,6 +1609,8 @@ static int exynos_cpufreq_reboot_notifier_call(struct notifier_block *this,
 			if (regulator_set_voltage(exynos_info[cl]->regulator, volt, volt + VOLT_RANGE_STEP))
 				goto err;
 
+		exynos_info[cl]->cur_volt = volt;
+
 		if (exynos_info[cl]->abb_table) {
 			abb_freq = max(bootfreq, freqs[cl]->old);
 			freq_table = exynos_info[cl]->freq_table;
@@ -1609,6 +1627,8 @@ static int exynos_cpufreq_reboot_notifier_call(struct notifier_block *this,
 		if (set_abb_first_than_volt)
 			if (regulator_set_voltage(exynos_info[cl]->regulator, volt, volt + VOLT_RANGE_STEP))
 				goto err;
+
+		exynos_info[cl]->cur_volt = volt;
 
 		if (exynos_info[cl]->set_ema)
 			exynos_info[cl]->set_ema(volt);
@@ -1915,6 +1935,8 @@ static int __init exynos_cpufreq_init(void)
 
 		set_boot_freq(cluster);
 		set_resume_freq(cluster);
+
+		exynos_info[cluster]->cur_volt = regulator_get_voltage(exynos_info[cluster]->regulator);
 
 		/* set initial old frequency */
 		freqs[cluster]->old = exynos_getspeed_cluster(cluster);
