@@ -15,6 +15,16 @@ cat << CTAG
 		description:""
 	}},
 	{ SPane:{
+		title:"Kernel Code Name"
+	}},
+	{ SLiveLabel:{
+		refresh:10000,
+		action:"default codename"
+	}},
+	{ SDescription:{
+		description:""
+	}},
+	{ SPane:{
 		title:"Source",
 		description:"<a href='https://github.com/HRTKernel/Hacker_Kernel_SM-G920F'>Source at GitHub</a>"
 	}},

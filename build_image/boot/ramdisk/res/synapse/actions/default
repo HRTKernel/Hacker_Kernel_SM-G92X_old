@@ -113,7 +113,10 @@ hotplug)
   ;;
 dev)
   echo `sed -n '1p' /sbin/hrt`
-  ;;  
+  ;;
+codename)
+  echo `sed -n '2p' /sbin/hrt`
+  ;;    
 version)
   echo `busybox uname -r`
   ;;
