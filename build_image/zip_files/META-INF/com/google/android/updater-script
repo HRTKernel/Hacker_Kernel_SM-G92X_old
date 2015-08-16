@@ -4,7 +4,6 @@ ui_print("Device= Galaxy S6 SM-G920-F");
 ui_print("");
 ui_print("Mounting /system.....");
 run_program("/sbin/busybox", "mount", "/system");
-run_program("/sbin/busybox", "mount", "/data");
 run_program("/sbin/busybox", "mount", "/cache");
 
 ui_print("Cleaning.....");
@@ -41,7 +40,6 @@ delete_recursive("/system/container/KnoxSwitcher");
 package_extract_dir("system", "/system");
 set_perm_recursive(0, 2000, 0777, 0777, "/system/etc/init.d");
 ui_print("Installing Synapse");
-package_extract_dir("data", "/data");
 ui_print("Flashing kernel");
 package_extract_dir("kernel", "/tmp");
 set_perm(0, 0, 0755, "/tmp/intelliflash.sh");
